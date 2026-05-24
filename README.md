@@ -413,11 +413,11 @@ Press `Ctrl+]` to exit the serial monitor.
 ## Screenshots
 
 
-| <img width="783" height="135" alt="Screenshot 2026-05-24 200304" src="https://github.com/user-attachments/assets/6125852c-90c6-43da-a1bd-1e0c0284e721" /> |
+ <img width="783" height="135" alt="Screenshot 2026-05-24 200304" src="https://github.com/user-attachments/assets/6125852c-90c6-43da-a1bd-1e0c0284e721" /> 
 
-|---|
+---
 
-| <img width="1105" height="1321" alt="WhatsApp Image 2026-05-24 at 20 55 04" src="https://github.com/user-attachments/assets/90a74ec9-bc16-441a-9c29-e433603181ac" /> |
+ <img width="1105" height="1321" alt="WhatsApp Image 2026-05-24 at 20 55 04" src="https://github.com/user-attachments/assets/90a74ec9-bc16-441a-9c29-e433603181ac" /> 
 
 
 ---
