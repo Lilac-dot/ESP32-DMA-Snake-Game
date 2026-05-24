@@ -23,10 +23,6 @@
 - [Flash & Monitor](#flash--monitor)
 - [Known Limitations & Future Improvements](#known-limitations--future-improvements)
 - [Screenshots](#screenshots)
-- [Skills Demonstrated](#skills-demonstrated)
-- [Resume Description](#resume-description)
-- [Elevator Pitch](#elevator-pitch)
-- [License](#license)
 
 ---
 
