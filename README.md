@@ -7,7 +7,6 @@
 ## Table of Contents
 
 - [Overview](#overview)
-- [Why This Project Is Interesting](#why-this-project-is-interesting)
 - [Technical Highlights](#technical-highlights)
 - [Features](#features)
 - [Hardware](#hardware)
@@ -36,26 +35,6 @@
 This project implements a complete Snake game on an **ESP32-WROOM** microcontroller driving a **1.8" ST7735 SPI TFT display** — entirely without any graphics abstraction libraries such as TFT_eSPI, Adafruit GFX, or LVGL.
 
 Every layer of the display pipeline — from the SPI initialization sequences, to the framebuffer layout in SRAM, to the DMA transfer engine — is written from scratch using the **ESP-IDF framework** directly. The game runs inside a **FreeRTOS task** with a state machine managing menu, gameplay, and game-over screens, while a custom incremental rendering engine minimizes pixel writes per frame.
-
-This is not a tutorial project. It is a systems-level implementation of a real-time embedded graphics engine.
-
----
-
-## Why This Project Is Interesting
-
-Most embedded game projects for microcontrollers rely on opaque graphics libraries that hide every interesting detail. `TFT_eSPI::fillRect()` is a black box. You call it, pixels appear, and you learn nothing about SPI protocols, pixel formats, memory layouts, or DMA.
-
-This project strips all of that away.
-
-**Every concept here maps directly to professional embedded graphics work:**
-
-- The RGB565 framebuffer is the same format used in Linux framebuffer drivers and embedded display controllers.
-- The `spi_device_queue_trans` / `spi_device_get_trans_result` pattern is the same double-buffered DMA pipeline used in production displays on industrial HMI panels.
-- The `setAddrWindow` + `RAMWR` command sequence is the foundation of every SPI display driver ever written for the ST77xx family — from hobbyist screens to small-run consumer electronics.
-- The FreeRTOS task architecture with microsecond-precision game tick timing reflects how production embedded game loops and UI refresh cycles are structured.
-- Writing your own pixel font renderer — even a simple one — forces you to understand bitmapped glyph storage, column-major byte packing, and bitfield extraction.
-
-The project demonstrates not just that you can *use* a microcontroller, but that you understand *what the microcontroller is doing*.
 
 ---
 
@@ -132,8 +111,6 @@ The project demonstrates not just that you can *use* a microcontroller, but that
 | Timer | `esp_timer_get_time()` — 64-bit microsecond hardware timer |
 | Build system | CMake + `idf.py` |
 | Debug output | UART via `printf` / ESP-IDF serial monitor |
-
-No Arduino core. No TFT_eSPI. No Adafruit GFX. No LVGL. No display libraries of any kind.
 
 ---
 
@@ -281,7 +258,7 @@ The display is divided into an 8×8 pixel tile grid: 16 columns × 20 rows. The 
 ### Snake Representation
 The snake is stored as an array of `Point` structs (grid coordinates), head at index 0:
 ```c
-Point snake[100];  // max 100 segments
+Point snake[320];  // max 320 segments
 int snakeLength;   // current active length
 ```
 
@@ -418,16 +395,13 @@ Press `Ctrl+]` to exit the serial monitor.
 
 ### Current Limitations
 
-- **Number rendering**: The `drawChar()` function renders digit characters (0–9) as solid filled blocks rather than distinct glyph shapes. A proper 5×7 numeric glyph table is needed.
 - **Food spawn collision**: `spawnFood()` uses `rand() % GRID_W/H` with no check against snake body — food can technically spawn inside the snake on a long game.
-- **Snake array cap**: `snake[100]` limits maximum length to 100 segments, roughly 31% of the 16×20 grid. Should be `GRID_W * GRID_H = 320`.
 - **Display init**: The ST7735 initialization omits panel-specific registers (FRMCTR1, PWCTR, VMCTR, gamma tables). The minimal sequence works but color accuracy and refresh rate are not optimal.
 - **Border/play field overlap**: The 1-pixel border is drawn at pixels 0 and 127/159, but the snake grid starts at grid x=0 (pixel 0), meaning the snake can visually overlap the border.
 - **No NVS persistence**: High score resets on power cycle. ESP-IDF NVS (non-volatile storage) API could persist it to flash.
 
 ### Planned Improvements
 
-- [ ] Proper 5×7 numeric glyph table for score display
 - [ ] Food spawn with snake-body exclusion check
 - [ ] NVS high score persistence across resets
 - [ ] Double-buffered rendering to eliminate potential tearing
@@ -442,59 +416,11 @@ Press `Ctrl+]` to exit the serial monitor.
 
 ## Screenshots
 
-> *Add photos/screenshots of the hardware here.*
 
-| Menu Screen | Gameplay | Game Over |
-|---|---|---|
-| ![menu](docs/menu.jpg) | ![gameplay](docs/gameplay.jpg) | ![gameover](docs/gameover.jpg) |
+| Menu Screen |
+|---|
+| <img width="1105" height="1321" alt="WhatsApp Image 2026-05-24 at 20 55 04" src="https://github.com/user-attachments/assets/90a74ec9-bc16-441a-9c29-e433603181ac" /> |
 
----
-
-## Skills Demonstrated
-
-### Embedded Systems
-- Raw SPI peripheral configuration using ESP-IDF HAL (not Arduino wrappers)
-- ST77xx display driver protocol: CASET, RASET, RAMWR, MADCTL, COLMOD command sequences
-- DMA-backed SPI transactions via ESP-IDF `spi_device_queue_trans` / `spi_device_get_trans_result`
-- GPIO configuration with hardware pull-up enable for active-low button inputs
-- Microsecond-precision timing using ESP-IDF hardware timer (`esp_timer_get_time`)
-- FreeRTOS task creation with core affinity pinning
-
-### Graphics & Rendering
-- RGB565 pixel format — endianness, bit packing, color constant derivation
-- Row-major framebuffer layout in SRAM
-- Column-major bitmapped font storage and per-bit glyph rendering
-- Incremental / dirty-region rendering to minimize memory bus traffic
-- Full-frame framebuffer DMA flush pipeline
-
-### Systems Programming
-- Memory-mapped framebuffer pattern (mirrors Linux `/dev/fb0` concepts)
-- Fixed-size array game state with pointer-arithmetic-free index management
-- Finite state machine: clean enum-based state transitions
-- Stack-allocation avoidance for performance-critical paths (static `spi_transaction_t`)
-
-### Software Engineering
-- ESP-IDF CMake project structure
-- `extern "C"` ABI boundary for C++ / C interop in ESP-IDF entry point
-- Serial UART telemetry for embedded performance profiling
-- Clean separation of driver layer, rendering layer, and game logic layer
 
 ---
 
-## Resume Description
-
-**ESP32 Snake Game — Bare-Metal Graphics Engine** | C++, ESP-IDF, FreeRTOS
-
-Built a real-time Snake game on ESP32-WROOM with a custom ST7735 SPI display driver, RGB565 framebuffer, and DMA rendering pipeline — using ESP-IDF directly with no external graphics libraries. Implemented the full display stack from SPI initialization commands and address window protocol through framebuffer memory layout and async DMA transfers. Designed a FreeRTOS task-based game loop with microsecond-precision timing, incremental dirty-region rendering, and a bitmapped font engine. Achieved ~60 FPS render cadence with a 27 MHz DMA SPI pipeline pushing 40,960-byte framebuffer updates.
-
----
-
-## Elevator Pitch
-
-> "I built a Snake game on an ESP32, but the interesting part isn't the game — it's that I wrote the entire graphics stack from scratch. No TFT library, no Adafruit GFX, nothing. I'm talking raw SPI command sequences to initialize the ST7735 panel, a 40KB RGB565 framebuffer in SRAM, and DMA transfers to push it to the display. I built my own pixel renderer, my own font engine, my own dirty-region update system. The game runs inside a FreeRTOS task with microsecond game tick timing. It taught me everything about how displays actually work at the hardware level — which is directly applicable to any role working on embedded HMI, display controllers, or firmware for consumer electronics."
-
----
-
-## License
-
-MIT License. See [LICENSE](LICENSE) for details.
