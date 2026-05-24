@@ -79,7 +79,7 @@ Every layer of the display pipeline — from the SPI initialization sequences, t
 - Incremental rendering: only the snake head and vacated tail cell are repainted per game tick
 - 27 MHz SPI clock for full-frame DMA push in ~1.2ms
 - Per-frame FPS measurement with 30-frame serial reporting interval
-- `vTaskDelay(pdMS_TO_TICKS(16))` yielding for ~60 Hz render loop cadence
+- `vTaskDelay(pdMS_TO_TICKS(16))` yielding for ~30 FPS render loop cadence
 
 ---
 
